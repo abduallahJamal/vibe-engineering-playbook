@@ -1,0 +1,40 @@
+name: validate
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Playbook & Agent Skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check shell script syntax
+        run: bash -n install.sh scripts/*.sh
+
+      - name: Verify multi-agent SHA-256 parity
+        run: ./scripts/sync-platforms.sh --check
+
+      - name: Run repository & link validator
+        run: python3 scripts/validate.py --github-annotations
+
+      - name: Test installer (--list & temp project install)
+        run: |
+          ./install.sh --list
+          ./install.sh --all --project /tmp/vibe-install-smoke
+          test -f /tmp/vibe-install-smoke/.opencode/commands/vibe.md
+          test -f /tmp/vibe-install-smoke/.claude/skills/vibe/SKILL.md
+          test -f /tmp/vibe-install-smoke/.agents/skills/vibe-test-gate/SKILL.md

@@ -1,0 +1,4 @@
+* text=auto eol=lf
+install.sh linguist-vendored
+scripts/sync-platforms.sh linguist-vendored
+scripts/publish.sh linguist-vendored
